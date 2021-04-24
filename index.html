@@ -1,0 +1,408 @@
+<html>
+<meta charset="utf-8" />
+
+<head>
+	<script src="/socket.io/socket.io.js"></script>
+	<style>
+		td {
+			height: 50px;
+			width: 50px;
+			border: 1px solid grey;
+			text-align: center;
+			vertical-align: middle;
+			font-size: 1.5em;
+			padding: 0;
+			color: black;
+			background-color: white;
+		}
+
+		#mtab {
+			display: inline-block;
+		}
+
+		#player_info {
+			display: inline-block;
+			vertical-align: top;
+		}
+		.spawner
+		{
+			background-color:green;
+		}
+	</style>
+</head>
+
+<body>
+	<h2>Wyślij piechura za line wroga!</h2>
+	<table id="tab">
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>
+			<td></td>
+			<td></td>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>
+			<td></td>
+			<td></td>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>
+			<td></td>
+			<td></td>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>
+			<td></td>
+			<td></td>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>
+			<td></td>
+			<td></td>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>
+			<td></td>
+			<td></td>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>
+			<td></td>
+			<td></td>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>
+			<td></td>
+			<td></td>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>
+			<td></td>
+			<td></td>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>
+			<td></td>
+			<td></td>
+			</td>
+			<td></td>
+		</tr>
+	</table>
+	<div>
+		<input type='text' id='txtmessage' />
+		<button id='reset'>Reset</button>
+		<button id='join' onclick = "join()">Dołącz</button>
+		<ul id='messages'></ul>
+	</div>
+
+	<button onclick="archer()">Archer</button>
+	<button onclick="footman()">Footman</button>
+	<button onclick="delet()">Remove Unit</button>
+	<button onclick="upgrade_arch()">Upgrade Archer</button>
+	<button onclick="upgrade_foot()">Upgrad Footman</button>
+	<button onclick="end_turn()">Koniec Tury</button>
+	<div id="player_info">
+		<h3 id="money"></h3>
+		<h3 id="exp"></h3>
+		<h3 id="foot_lvl"></h3>
+		<h3 id="arch_lvl"></h3>
+		<p>Players ready</p>
+		<p id="p1">p1: Not ready</p>
+		<p id="p2">p2: Not ready</p>
+	</div>
+</body>
+
+<script>
+
+	var rmv = false;
+	var foot = false;
+	var arch = false;
+	var nick = prompt("Podaj swój nick");
+
+	var socket = io();
+
+
+	socket.emit('nick', nick);
+
+	var messages = document.getElementById('messages');
+	var reset_button = document.getElementById('reset');
+	var msg_input = document.getElementById('txtmessage');
+	var player_money = document.getElementById('money');
+	var player_exp = document.getElementById('exp');
+	var player_arch = document.getElementById('arch_lvl');
+	var player_foot = document.getElementById('foot_lvl');
+	msg_input.focus()
+
+	var td = document.querySelectorAll('td');
+	var i = 0;
+	var j = 0;
+	var pionek = 'x';
+	var color = 'white';
+	var player = 0;
+	var id = 0;
+
+	// wysyłanie wiadomości o ruchu
+	function dodaj() {
+		if (this.pole > 90) {
+			if (rmv) {
+				this.innerHTML = "";
+				this.backgroundColor = '';
+				socket.emit('remove_unit', this.pole);
+			}
+			else if (arch)
+				socket.emit('add_unit', JSON.stringify({ pole: this.pole, type: 2 }));
+			else if (foot)
+				socket.emit('add_unit', JSON.stringify({ pole: this.pole, type: 1 }));
+		}
+	}
+	function upgrade_foot() {
+		socket.emit('upgrade_unit', 1);
+	}
+	function upgrade_arch() {
+		socket.emit('upgrade_unit', 2);
+	}
+
+
+	for (let x of td) {
+	//	x.style.backgroundColor = 'white';
+		x.pole = ++i;
+		x.id = i;
+		if (i > 90)
+			{
+				x.onclick = dodaj;
+				x.className = "spawner";
+			}
+
+	}
+
+	// odbieranie wiadomości 
+	socket.on('chat message', function (data) {
+		messages.innerHTML += "<li>" + data + "</li>";
+	});
+	socket.on('assign_player', function (i) {
+		player = i;
+	});
+
+
+	// odbieranie wiadomości o resecie
+	socket.on('reset', function (msg) {
+		messages.innerHTML = "<li>" + msg + " " + nick + "!</li>";
+		for (let x of td) {
+			x.innerHTML = '';
+			x.style.backgroundColor = '';
+		}
+	});
+
+
+	// odbieranie wiadomości o przyznanym id
+	socket.on('id', function (msg) {
+		pionek = msg;
+		id = msg;
+	});
+
+	// odbieranie wiadomości o ruchu
+	socket.on('move', function (msg) {
+		console.log(msg);
+		console.log(typeof (msg));
+		for (let t of td) {
+			t.innerHTML = "";
+			t.style.backgroundColor = "";
+		}
+		for (let unit in msg) {
+			unit = msg[unit];
+			console.log(unit);
+			console.log(unit.pole);
+
+
+			if (player == 1) {
+				td[101 - unit.pole - 1].innerHTML = build_unit(unit);
+				if (is_enemy(unit)) {
+					td[101 - unit.pole - 1].style.backgroundColor = "red";
+				}
+				else {
+					td[101 - unit.pole - 1].style.backgroundColor = "blue";
+				}
+			}
+			else {
+				td[unit.pole - 1].innerHTML = build_unit(unit);
+				if (is_enemy(unit)) {
+					td[unit.pole - 1].style.backgroundColor = "red";
+				}
+				else {
+					td[unit.pole - 1].style.backgroundColor = "blue";
+				}
+			}
+
+
+
+		}
+	});
+	socket.on('ready',function(player)
+	{
+		let p;
+		if(player == 0)
+		{
+			p = document.getElementById('p1');
+		}
+		else
+		{
+			p = document.getElementById('p2');
+		}
+		p.innerText = player+1 +": ready";
+	})
+	socket.on('reset_ready',function(){
+		document.getElementById('p1').innerText="p1: Not ready";
+		document.getElementById('p2').innerText="p2: Not ready";
+	})
+	socket.on('unit_info', function (unit) {
+
+		if (player == 1) {
+			td[101 - unit.pole - 1].innerHTML = build_unit(unit);
+			td[101 - unit.pole - 1].style.backgroundColor = "blue";
+		}
+		else {
+			td[unit.pole - 1].innerHTML = build_unit(unit);
+			td[unit.pole - 1].style.backgroundColor = "blue";
+		}
+	});
+	socket.on('player_info', function (msg) {
+		player_money.innerText = "money: " + msg.money;
+		player_exp.innerText = "exp: " + msg.exp;
+		player_arch.innerText = "archer level: " + msg.arch_lvl;
+		player_foot.innerText = "footman level: " + msg.foot_lvl;
+	})
+
+	// wysyłanie wiadomości z okienka czatu
+	msg_input.addEventListener('change', function () {
+		socket.emit('chat message', "<b>" + nick + ":</b> " + this.value);
+		this.value = '';
+
+	});
+
+	// wysyłanie wiadomości o resecie
+	reset_button.onclick = function () {
+		socket.emit('reset', "Witaj");
+	};
+	function join()
+	{
+		socket.emit('join', "Witaj");
+	}
+
+	function archer() {
+		rmv = false;
+		foot = false;
+		arch = true;
+	}
+	function footman() {
+		rmv = false;
+		foot = true;
+		arch = false;
+	}
+	function delet() {
+		rmv = true;
+		foot = false;
+		arch = false;
+	}
+	function end_turn() {
+		rmv = false;
+		foot = false;
+		arch = false;
+		socket.emit('end_turn');
+	}
+
+	function build_unit(unit) {
+		ht = '<ul>';
+		ht += "<li>HP: " + unit.hp + "</li><li>At: " + unit.attack + "</li>";
+		if (unit.type == 2)
+			ht += "<li>Range: </li>"+unit.range;
+		ht += "</ul>";
+		return ht;
+	}
+	function is_enemy(unit) {
+		let enemy = false;
+		if (unit.player != id) {
+			enemy = true;
+		}
+		return enemy;
+	}
+
+</script>
+
+</html>
