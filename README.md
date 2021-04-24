@@ -1,5 +1,5 @@
 # js_game
-Javasciptowy serwer i klient do obsługii prostej autorkiej gry
+Javascriptowy serwer i klient do obsługi prostej autorkiej gry
 
 # urochomianie
 
